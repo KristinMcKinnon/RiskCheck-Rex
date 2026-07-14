@@ -53,7 +53,7 @@ def render_results_page(conn, record: dict):
     edited_risks = st.data_editor(
         risk_df,
         num_rows="dynamic",
-        use_container_width=True,
+        width="stretch",
         key="risk_editor",
         column_config={
             "Description": st.column_config.TextColumn(width="large"),
@@ -77,7 +77,7 @@ def render_results_page(conn, record: dict):
     edited_opps = st.data_editor(
         opp_df,
         num_rows="dynamic",
-        use_container_width=True,
+        width="stretch",
         key="opp_editor",
         column_config={
             "Description": st.column_config.TextColumn(width="large"),
@@ -98,7 +98,7 @@ def render_results_page(conn, record: dict):
     edited_questions = st.data_editor(
         question_df,
         num_rows="dynamic",
-        use_container_width=True,
+        width="stretch",
         key="question_editor",
         column_config={"Question": st.column_config.TextColumn(width="large")},
     )
@@ -141,7 +141,7 @@ def render_results_page(conn, record: dict):
         ],
     }
 
-    if col1.button("💾 Save my edits", use_container_width=True):
+    if col1.button("💾 Save my edits", width="stretch"):
         db.save_results(conn, record["id"], updated_results)
         st.success("Changes saved.")
 
@@ -151,7 +151,7 @@ def render_results_page(conn, record: dict):
         data=workbook,
         file_name="riskcheck-rex-preliminary-risk-register.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=True,
+        width="stretch",
     )
 
     render_disclaimer()

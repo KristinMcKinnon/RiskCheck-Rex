@@ -19,9 +19,9 @@ if random.random() < 0.02:
     db.purge_expired(conn)
 
 with st.sidebar:
-    st.image(str(LOGO_PATH), use_container_width=True)
+    st.image(str(LOGO_PATH), width="stretch")
     st.caption("Preliminary, AI-assisted risk brainstorming for project teams.")
-    if st.button("➕ Start a new blank assessment", use_container_width=True):
+    if st.button("➕ Start a new blank assessment", width="stretch"):
         st.query_params.clear()
         st.session_state["force_edit"] = False
         st.rerun()

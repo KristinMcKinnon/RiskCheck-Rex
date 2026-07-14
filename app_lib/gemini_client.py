@@ -53,7 +53,7 @@ def generate_assessment(inputs: dict) -> dict:
             logger.warning("Gemini response parse failure on attempt %s: %s", attempt, type(exc).__name__)
         except Exception as exc:  # network/timeout/API errors from the SDK
             last_error = exc
-            logger.warning("Gemini call failed on attempt %s: %s", attempt, type(exc).__name__)
+            logger.warning("Gemini call failed on attempt %s: %s: %s", attempt, type(exc).__name__, exc)
 
         if attempt < MAX_ATTEMPTS:
             time.sleep(1.5 * attempt)
