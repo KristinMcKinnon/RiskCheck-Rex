@@ -1,4 +1,10 @@
+from pathlib import Path
+
 import streamlit as st
+
+ASSETS_DIR = Path(__file__).parent / "assets"
+LOGO_PATH = ASSETS_DIR / "logo.png"
+LOGO_ICON_PATH = ASSETS_DIR / "logo_icon.png"
 
 DISCLAIMER_TEXT = (
     "**This is an AI-generated starting point only.** It has not been "

@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from app_lib import db
-from app_lib.components import render_disclaimer
+from app_lib.components import LOGO_ICON_PATH, render_disclaimer
 from app_lib.export import build_workbook
 
 
@@ -17,7 +17,9 @@ def _lines_to_list(text) -> list:
 def render_results_page(conn, record: dict):
     results = record["results"]
 
-    st.title("🦖 RiskCheck Rex - Preliminary Results")
+    icon_col, title_col = st.columns([1, 9], vertical_alignment="center")
+    icon_col.image(str(LOGO_ICON_PATH))
+    title_col.title("RiskCheck Rex - Preliminary Results")
     render_disclaimer()
 
     st.info(
