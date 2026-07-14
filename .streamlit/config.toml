@@ -1,0 +1,9 @@
+[theme]
+base = "light"
+primaryColor = "#7A2E2E"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+enableStaticServing = false
