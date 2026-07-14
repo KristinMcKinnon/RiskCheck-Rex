@@ -154,7 +154,7 @@ def _save_and_generate(conn, existing, field_values):
 
     with st.spinner("Asking Gemini to draft a preliminary risk assessment..."):
         try:
-            results = generate_assessment(field_values)
+            results = generate_assessment(field_values, conn)
         except GenerationError:
             st.error(
                 "The AI service didn't return a usable result just now. "

@@ -1,5 +1,6 @@
 import json
 import logging
+import random
 import time
 
 import streamlit as st
@@ -7,6 +8,7 @@ from google import genai
 from google.genai import types
 
 from app_lib.prompts import RESPONSE_SCHEMA, SYSTEM_INSTRUCTION, build_user_prompt
+from app_lib.ratelimit import allow_generation
 
 MODEL_NAME = "gemini-3.5-flash"
 MAX_OUTPUT_TOKENS = 8192
@@ -27,14 +29,22 @@ def _get_client() -> genai.Client:
     return genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 
-def generate_assessment(inputs: dict) -> dict:
+def generate_assessment(inputs: dict, conn) -> dict:
     """Calls Gemini and returns a dict shaped like RESPONSE_SCHEMA, with our
-    own sequential IDs stamped onto each risk/opportunity."""
+    own sequential IDs stamped onto each risk/opportunity.
+
+    The caller's pre-flight `allow_generation` check covers the first
+    attempt; each retry beyond that re-checks and counts against the same
+    per-IP daily cap, so a string of retries can't multiply real Gemini
+    traffic past the cap."""
     client = _get_client()
     user_prompt = build_user_prompt(inputs)
 
     last_error: Exception | None = None
     for attempt in range(1, MAX_ATTEMPTS + 1):
+        if attempt > 1 and not allow_generation(conn):
+            logger.warning("Stopping Gemini retries at attempt %s: daily rate limit reached", attempt)
+            break
         try:
             response = client.models.generate_content(
                 model=MODEL_NAME,
@@ -57,7 +67,8 @@ def generate_assessment(inputs: dict) -> dict:
             logger.warning("Gemini call failed on attempt %s: %s: %s", attempt, type(exc).__name__, exc)
 
         if attempt < MAX_ATTEMPTS:
-            time.sleep(RETRY_BACKOFF_SECONDS * 2 ** (attempt - 1))
+            base_delay = RETRY_BACKOFF_SECONDS * 2 ** (attempt - 1)
+            time.sleep(random.uniform(base_delay * 0.5, base_delay * 1.5))
 
     raise GenerationError(
         "Gemini didn't return a usable result after several attempts."
