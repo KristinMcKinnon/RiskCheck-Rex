@@ -8,7 +8,7 @@ from google.genai import types
 
 from app_lib.prompts import RESPONSE_SCHEMA, SYSTEM_INSTRUCTION, build_user_prompt
 
-MODEL_NAME = "gemini-2.5-flash"
+MODEL_NAME = "gemini-3.5-flash"
 MAX_OUTPUT_TOKENS = 8192
 MAX_ATTEMPTS = 3
 
