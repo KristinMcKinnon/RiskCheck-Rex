@@ -1,7 +1,7 @@
 import streamlit as st
 
 from app_lib import db
-from app_lib.components import render_disclaimer, render_sensitive_data_notice
+from app_lib.components import LOGO_ICON_PATH, render_disclaimer, render_sensitive_data_notice
 from app_lib.gemini_client import GenerationError, generate_assessment
 from app_lib.ratelimit import allow_generation
 
@@ -66,7 +66,9 @@ def render_input_form(conn, existing: dict | None):
         st.success(flash, icon="💾")
 
     render_sensitive_data_notice()
-    st.title("🦖 RiskCheck Rex")
+    icon_col, title_col = st.columns([1, 9], vertical_alignment="center")
+    icon_col.image(str(LOGO_ICON_PATH))
+    title_col.title("RiskCheck Rex")
     st.caption(
         "A preliminary, AI-assisted risk assessment to use as a "
         "brainstorming starting point - not a final or authoritative "

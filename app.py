@@ -3,11 +3,11 @@ import random
 import streamlit as st
 
 from app_lib import db
-from app_lib.components import inject_noindex
+from app_lib.components import LOGO_ICON_PATH, LOGO_PATH, inject_noindex
 from app_lib.views_input import render_input_form
 from app_lib.views_results import render_results_page
 
-st.set_page_config(page_title="RiskCheck Rex", page_icon="🦖", layout="wide")
+st.set_page_config(page_title="RiskCheck Rex", page_icon=str(LOGO_ICON_PATH), layout="wide")
 inject_noindex()
 
 conn = db.get_connection()
@@ -19,7 +19,7 @@ if random.random() < 0.02:
     db.purge_expired(conn)
 
 with st.sidebar:
-    st.markdown("### 🦖 RiskCheck Rex")
+    st.image(str(LOGO_PATH), use_container_width=True)
     st.caption("Preliminary, AI-assisted risk brainstorming for project teams.")
     if st.button("➕ Start a new blank assessment", use_container_width=True):
         st.query_params.clear()
