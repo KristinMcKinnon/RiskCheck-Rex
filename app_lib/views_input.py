@@ -109,13 +109,13 @@ def render_input_form(conn, existing: dict | None):
 
     col1, col2 = st.columns(2)
     save_clicked = col1.button(
-        "💾 Save draft for later", disabled=not all_valid, use_container_width=True
+        "💾 Save draft for later", disabled=not all_valid, width="stretch"
     )
     generate_clicked = col2.button(
         "✨ Generate risk assessment",
         type="primary",
         disabled=not all_valid,
-        use_container_width=True,
+        width="stretch",
     )
 
     if save_clicked:
