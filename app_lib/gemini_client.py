@@ -10,7 +10,8 @@ from app_lib.prompts import RESPONSE_SCHEMA, SYSTEM_INSTRUCTION, build_user_prom
 
 MODEL_NAME = "gemini-3.5-flash"
 MAX_OUTPUT_TOKENS = 8192
-MAX_ATTEMPTS = 3
+MAX_ATTEMPTS = 5
+RETRY_BACKOFF_SECONDS = 2
 
 logger = logging.getLogger("riskcheck_rex")
 
@@ -56,7 +57,7 @@ def generate_assessment(inputs: dict) -> dict:
             logger.warning("Gemini call failed on attempt %s: %s: %s", attempt, type(exc).__name__, exc)
 
         if attempt < MAX_ATTEMPTS:
-            time.sleep(1.5 * attempt)
+            time.sleep(RETRY_BACKOFF_SECONDS * 2 ** (attempt - 1))
 
     raise GenerationError(
         "Gemini didn't return a usable result after several attempts."
