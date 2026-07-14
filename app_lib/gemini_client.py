@@ -1,3 +1,4 @@
+import concurrent.futures
 import json
 import logging
 import random
@@ -14,6 +15,7 @@ MODEL_NAME = "gemini-3.5-flash"
 MAX_OUTPUT_TOKENS = 8192
 MAX_ATTEMPTS = 5
 RETRY_BACKOFF_SECONDS = 2
+REQUEST_TIMEOUT_SECONDS = 60
 
 logger = logging.getLogger("riskcheck_rex")
 
@@ -26,7 +28,27 @@ class GenerationError(Exception):
 
 @st.cache_resource
 def _get_client() -> genai.Client:
-    return genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+    return genai.Client(
+        api_key=st.secrets["GEMINI_API_KEY"],
+        http_options=types.HttpOptions(timeout=REQUEST_TIMEOUT_SECONDS * 1000),
+    )
+
+
+def _call_with_deadline(fn, *args, **kwargs):
+    """Runs fn in a worker thread with a hard wall-clock deadline.
+
+    The SDK's own http_options timeout isn't reliably honored on every
+    code path (googleapis/python-genai#911), so this is the backstop that
+    actually guarantees a hung request can't block the app indefinitely.
+    A timed-out call's thread is abandoned rather than joined - it can't
+    be cancelled mid-flight, but the caller is freed immediately.
+    """
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    future = executor.submit(fn, *args, **kwargs)
+    try:
+        return future.result(timeout=REQUEST_TIMEOUT_SECONDS)
+    finally:
+        executor.shutdown(wait=False)
 
 
 def generate_assessment(inputs: dict, conn) -> dict:
@@ -46,7 +68,8 @@ def generate_assessment(inputs: dict, conn) -> dict:
             logger.warning("Stopping Gemini retries at attempt %s: daily rate limit reached", attempt)
             break
         try:
-            response = client.models.generate_content(
+            response = _call_with_deadline(
+                client.models.generate_content,
                 model=MODEL_NAME,
                 contents=user_prompt,
                 config=types.GenerateContentConfig(
@@ -62,7 +85,10 @@ def generate_assessment(inputs: dict, conn) -> dict:
         except (json.JSONDecodeError, KeyError, ValueError) as exc:
             last_error = exc
             logger.warning("Gemini response parse failure on attempt %s: %s", attempt, type(exc).__name__)
-        except Exception as exc:  # network/timeout/API errors from the SDK
+        except concurrent.futures.TimeoutError as exc:
+            last_error = exc
+            logger.warning("Gemini call timed out on attempt %s after %ss", attempt, REQUEST_TIMEOUT_SECONDS)
+        except Exception as exc:  # network/API errors from the SDK
             last_error = exc
             logger.warning("Gemini call failed on attempt %s: %s: %s", attempt, type(exc).__name__, exc)
 
