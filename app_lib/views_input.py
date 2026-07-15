@@ -74,6 +74,7 @@ def render_input_form(conn, existing: dict | None):
         "brainstorming starting point - not a final or authoritative "
         "assessment."
     )
+    st.caption("This bot is for submission to IM2026")
     render_disclaimer()
 
     if is_edit:
